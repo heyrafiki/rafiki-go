@@ -1,0 +1,33 @@
+name: Bug report
+description: Report reproducible SDK behavior using synthetic data.
+title: ""
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Do not include API keys, personal data, health data or payment data. Security reports follow SECURITY.md.
+  - type: input
+    id: version
+    attributes:
+      label: SDK version or commit
+    validations:
+      required: true
+  - type: input
+    id: go
+    attributes:
+      label: Go version
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Reproduction and observed behavior
+      description: Use synthetic identifiers and remove credentials.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true

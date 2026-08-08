@@ -1,0 +1,7 @@
+/coverage.out
+/coverage.html
+/dist/
+*.test
+*.prof
+.idea/
+.vscode/
