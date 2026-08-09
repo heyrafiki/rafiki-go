@@ -89,7 +89,7 @@ use a new major API version and a documented migration period.
 
 This source preview was reviewed against
 [`heyrafiki/openapi`](https://github.com/heyrafiki/openapi) contract `1.0.0`,
-commit `327e0a70de92771d3930380ce552c00e0ed8fc52`, on 2026-08-09. The client is
+commit `e629a129462d82534a5e3ed16035da863305d283`, on 2026-08-09. The client is
 handwritten; no generated source is included. See [`CONTRACT.md`](./CONTRACT.md).
 
 ## Develop
