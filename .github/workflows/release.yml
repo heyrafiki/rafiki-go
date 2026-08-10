@@ -1,0 +1,47 @@
+name: Publish Go module
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    if: startsWith(github.event.release.tag_name, 'v')
+    runs-on: ubuntu-24.04
+    environment: go-release
+    timeout-minutes: 10
+    steps:
+      - name: Check out release tag
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Use Go 1.26
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: 1.26.x
+          cache: true
+      - name: Verify release tag and module
+        shell: bash
+        run: |
+          test "$(git tag --points-at HEAD | grep -Fx "$GITHUB_REF_NAME")" = "$GITHUB_REF_NAME"
+          test "$(go list -m)" = "github.com/heyrafiki/heyrafiki-go"
+          test -z "$(gofmt -l .)"
+          go mod tidy
+          git diff --exit-code -- go.mod go.sum
+          go test -race ./...
+          go vet ./...
+      - name: Publish module to the Go proxy
+        shell: bash
+        env:
+          GOPROXY: https://proxy.golang.org
+        run: |
+          for attempt in 1 2 3 4 5; do
+            if go list -m "github.com/heyrafiki/heyrafiki-go@${GITHUB_REF_NAME}"; then
+              exit 0
+            fi
+            sleep $((attempt * 5))
+          done
+          exit 1
