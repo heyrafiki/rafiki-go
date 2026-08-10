@@ -2,8 +2,6 @@
 
 Server-side Go client for the Heyrafiki API.
 
-> Source Preview. The API contract and this SDK are in beta. Use Sandbox projects.
-
 The client covers every operation published in the version 1 OpenAPI contract:
 Practitioners, Bookings, Sessions, eligibility, Coverage, pre-authorization,
 Claims, remittance and Webhooks.
@@ -18,7 +16,7 @@ import (
 	"log"
 	"os"
 
-	heyrafiki "github.com/heyrafiki/heyrafiki-go"
+heyrafiki "github.com/heyrafiki/rafiki-go"
 )
 
 func main() {
@@ -40,8 +38,13 @@ func main() {
 
 Keep API keys on the server. Sandbox keys return synthetic data.
 
-This source preview is not a tagged Go module release. Clone it locally for
-evaluation; a release tag and module availability will be announced separately.
+Build and test the client directly from its public source:
+
+```bash
+git clone https://github.com/heyrafiki/rafiki-go.git
+cd rafiki-go
+go test -race ./...
+```
 
 ## Idempotent writes
 
@@ -87,8 +90,8 @@ use a new major API version and a documented migration period.
 
 ## Contract provenance
 
-This source preview was reviewed against
-[`heyrafiki/openapi`](https://github.com/heyrafiki/openapi) contract `1.0.0`,
+This client was reviewed against
+[`heyrafiki/contract`](https://github.com/heyrafiki/contract) contract `1.0.0`,
 commit `e629a129462d82534a5e3ed16035da863305d283`, on 2026-08-09. The client is
 handwritten; no generated source is included. See [`CONTRACT.md`](./CONTRACT.md).
 
@@ -104,7 +107,8 @@ go run golang.org/x/vuln/cmd/govulncheck@v1.1.4 ./...
 ## Resources
 
 - [Documentation](https://docs.heyrafiki.space)
-- [API contract](https://github.com/heyrafiki/openapi)
+- [API contract](https://github.com/heyrafiki/contract)
+- [Open insurance assurance benchmark](https://github.com/heyrafiki/proving-ground)
 - [Webhooks](https://docs.heyrafiki.space/webhooks)
 - [Security](./SECURITY.md)
 

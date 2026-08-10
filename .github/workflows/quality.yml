@@ -6,7 +6,7 @@ on:
     branches: [main]
 
 concurrency:
-  group: go-sdk-${{ github.workflow }}-${{ github.ref }}
+  group: rafiki-go-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:

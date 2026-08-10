@@ -27,7 +27,7 @@ jobs:
         shell: bash
         run: |
           test "$(git tag --points-at HEAD | grep -Fx "$GITHUB_REF_NAME")" = "$GITHUB_REF_NAME"
-          test "$(go list -m)" = "github.com/heyrafiki/heyrafiki-go"
+          test "$(go list -m)" = "github.com/heyrafiki/rafiki-go"
           test -z "$(gofmt -l .)"
           go mod tidy
           git diff --exit-code -- go.mod go.sum
@@ -39,7 +39,7 @@ jobs:
           GOPROXY: https://proxy.golang.org
         run: |
           for attempt in 1 2 3 4 5; do
-            if go list -m "github.com/heyrafiki/heyrafiki-go@${GITHUB_REF_NAME}"; then
+            if go list -m "github.com/heyrafiki/rafiki-go@${GITHUB_REF_NAME}"; then
               exit 0
             fi
             sleep $((attempt * 5))

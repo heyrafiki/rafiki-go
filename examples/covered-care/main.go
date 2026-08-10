@@ -9,7 +9,7 @@ import (
 	"log"
 	"os"
 
-	heyrafiki "github.com/heyrafiki/heyrafiki-go"
+	heyrafiki "github.com/heyrafiki/rafiki-go"
 )
 
 func main() {
