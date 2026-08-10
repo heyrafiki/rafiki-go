@@ -22,7 +22,7 @@ var artifactReferencePattern = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9:._/-]*
 
 const (
 	defaultBaseURL      = "https://api.heyrafiki.space/v1"
-	defaultUserAgent    = "heyrafiki-go/0.1.0-beta.1"
+	defaultUserAgent    = "rafiki-go/0.1.0-beta.1"
 	defaultResponseSize = int64(4 << 20)
 )
 

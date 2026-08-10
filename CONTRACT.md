@@ -2,9 +2,9 @@
 
 | Item | Value |
 | --- | --- |
-| Status | Source Preview |
+| Status | Contract aligned |
 | Contract | Heyrafiki API `1.0.0` |
-| Source | `heyrafiki/openapi@e629a129462d82534a5e3ed16035da863305d283` |
+| Source | `heyrafiki/contract@e629a129462d82534a5e3ed16035da863305d283` |
 | Document SHA-256 | `d1c7349246e766aaf961e11c591a32de0afcc5900649be462e3656059722b211` |
 | Reviewed | 2026-08-09 |
 
@@ -21,5 +21,5 @@ update requires:
 4. recording the new contract version, commit and document SHA-256 here; and
 5. adding a changelog entry.
 
-The OpenAPI repository remains the authority. This file records provenance; it
+The contract repository remains the authority. This file records provenance; it
 does not replace or fork the contract.

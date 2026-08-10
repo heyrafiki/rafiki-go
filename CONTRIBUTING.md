@@ -4,7 +4,7 @@ Issues and pull requests are welcome.
 
 ## Before opening a change
 
-- Keep behavior within the published [OpenAPI contract](https://github.com/heyrafiki/openapi).
+- Keep behavior within the published [OpenAPI contract](https://github.com/heyrafiki/contract).
 - Use synthetic data in tests, examples and issue reports.
 - Never include personal, health, payment or production credential data.
 - Add or update tests for every behavior change.

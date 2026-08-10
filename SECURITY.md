@@ -7,7 +7,6 @@ Do not open a public issue for a suspected vulnerability. Do not include API
 keys, personal data, health data, payment data or production request bodies in a
 report. Use synthetic identifiers when a reproduction needs example data.
 
-The Source Preview is supported for Sandbox evaluation only. Security fixes are
-prepared on a private branch, reviewed, tested and released with a changelog
-entry. Supported tagged versions will be listed here when the first module
-release is published.
+The default branch and tagged releases receive reviewed security fixes with a
+changelog entry. Sandbox projects provide the integration boundary for source
+builds.

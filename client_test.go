@@ -236,7 +236,7 @@ func TestNonIdempotentWriteIsNotRetried(t *testing.T) {
 func TestTransportRetryUsesConfiguredHTTPClient(t *testing.T) {
 	var attempts atomic.Int32
 	httpClient := &http.Client{Transport: roundTripFunc(func(request *http.Request) (*http.Response, error) {
-		if request.Header.Get("User-Agent") != "heyrafiki-go/0.1.0-beta.1 integration-tests/1.0" {
+		if request.Header.Get("User-Agent") != "rafiki-go/0.1.0-beta.1 integration-tests/1.0" {
 			t.Errorf("user agent = %q", request.Header.Get("User-Agent"))
 		}
 		if attempts.Add(1) == 1 {

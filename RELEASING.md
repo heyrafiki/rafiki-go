@@ -1,7 +1,6 @@
 # Release process
 
-The module is currently a Source Preview. Do not create a tag until every gate
-below has passed.
+Create a tag only after every gate below has passed.
 
 ## Release gates
 
@@ -11,7 +10,7 @@ below has passed.
 4. Require CODEOWNERS approval and resolved review conversations.
 5. Confirm branch protection, secret scanning, dependency review and private
    vulnerability reporting are enabled.
-6. Update `CHANGELOG.md` and remove the Source Preview publication disclaimer.
+6. Update `CHANGELOG.md` with the compatibility and security impact.
 7. Create a signed `v0.x.y-beta.n` tag from the reviewed commit.
 8. Create a GitHub release with compatibility notes and the contract commit.
 9. Verify module discovery and documentation before announcing availability.
