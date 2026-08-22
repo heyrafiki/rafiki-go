@@ -2,12 +2,12 @@
 
 Server-side Go client for the Heyrafiki API.
 
-## Where this fits
+## What this SDK is for
 
-This SDK is the typed Go entrypoint to Heyrafiki's versioned REST contract. It
-helps applications participate in governed Mental Healthcare workflows while
-authorization, Consent, clinical authority and financial decisions remain
-server-owned.
+Use this SDK to call the Heyrafiki API from a Go service. It provides typed
+requests, predictable errors and idempotency support for retried writes. The
+platform applies access rules; clinical and financial decisions remain with the
+accountable people and organizations.
 
 The client covers every operation published in the version 1 OpenAPI contract:
 Practitioners, Bookings, Sessions, eligibility, Coverage, pre-authorization,
