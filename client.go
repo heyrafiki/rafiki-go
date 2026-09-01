@@ -22,7 +22,7 @@ var artifactReferencePattern = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9:._/-]*
 
 const (
 	defaultBaseURL      = "https://api.heyrafiki.space/v1"
-	defaultUserAgent    = "rafiki-go/0.1.0-beta.1"
+	defaultUserAgent    = "rafiki-go/0.1.0-beta.2"
 	defaultResponseSize = int64(4 << 20)
 )
 
@@ -332,6 +332,13 @@ func validateID(label, value string) error {
 		return fmt.Errorf("heyrafiki: %s is required", label)
 	}
 	return nil
+}
+
+func validateValuationAt(value string) (string, error) {
+	if _, err := time.Parse(time.RFC3339, value); err != nil {
+		return "", errors.New("heyrafiki: valuation cutoff must be an RFC 3339 timestamp")
+	}
+	return "?valuation_at=" + url.QueryEscape(value), nil
 }
 
 func validateIdempotencyKey(value string) error {
