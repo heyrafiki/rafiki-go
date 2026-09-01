@@ -12,6 +12,13 @@ type WriteOptions struct {
 	IdempotencyKey string
 }
 
+// ClaimValuationOptions supplies the knowledge cutoff required by a Claim valuation.
+type ClaimValuationOptions struct {
+	// ValuationAt is an inclusive RFC 3339 cutoff. Heyrafiki returns only the facts
+	// whose business time and knowledge time both fall on or before it.
+	ValuationAt string
+}
+
 // CoverageBatchOptions supplies the replay controls required by Coverage batch ingestion.
 type CoverageBatchOptions struct {
 	IdempotencyKey    string
@@ -447,6 +454,41 @@ type ClaimAdjudicationTotal struct {
 	Payer                 int64  `json:"payer"`
 	PatientResponsibility int64  `json:"patient_responsibility"`
 	Adjustment            int64  `json:"adjustment"`
+}
+
+type ClaimValuation struct {
+	ID          string                `json:"id"`
+	Object      string                `json:"object"`
+	ClaimID     string                `json:"claim_id"`
+	ValuationAt string                `json:"valuation_at"`
+	Currency    string                `json:"currency"`
+	Status      string                `json:"status"`
+	Amount      ClaimValuationAmount  `json:"amount"`
+	Policy      *PolicyReference      `json:"policy"`
+	Events      []ClaimValuationEvent `json:"events"`
+}
+
+type ClaimValuationAmount struct {
+	Billed                int64  `json:"billed"`
+	PayerLiability        *int64 `json:"payer_liability"`
+	PatientResponsibility *int64 `json:"patient_responsibility"`
+	Adjustment            *int64 `json:"adjustment"`
+	Remitted              int64  `json:"remitted"`
+	Settled               int64  `json:"settled"`
+	Outstanding           *int64 `json:"outstanding"`
+}
+
+// ClaimValuationEvent records one Claim fact with both its business time and the
+// knowledge time at which Heyrafiki persisted it.
+type ClaimValuationEvent struct {
+	Sequence           int      `json:"sequence"`
+	Type               string   `json:"type"`
+	EffectiveAt        string   `json:"effective_at"`
+	RecordedAt         string   `json:"recorded_at"`
+	PreviousStatus     *string  `json:"previous_status"`
+	NextStatus         *string  `json:"next_status"`
+	ReasonCode         *string  `json:"reason_code"`
+	EvidenceReferences []string `json:"evidence_references"`
 }
 
 type RemittanceList struct {

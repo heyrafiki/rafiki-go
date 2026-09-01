@@ -4,12 +4,12 @@
 | --- | --- |
 | Status | Contract aligned |
 | Contract | Heyrafiki API `1.0.0` |
-| Source | `heyrafiki/contract@e629a129462d82534a5e3ed16035da863305d283` |
-| Document SHA-256 | `d1c7349246e766aaf961e11c591a32de0afcc5900649be462e3656059722b211` |
-| Reviewed | 2026-08-09 |
+| Source | `heyrafiki/contract@62c32d1b99ddded0cfe0baf8ddc57bcbaa764167` |
+| Document SHA-256 | `cf2747ba4282bc79e81f69aca66937de78f067266e3dd5651edecdf531863dda` |
+| Reviewed | 2026-08-28 |
 
 The SDK implements only operations present in the published OpenAPI document.
-Its 30 service methods map to 30 HTTP method and path pairs in that contract.
+Its 31 service methods map to 31 HTTP method and path pairs in that contract.
 The operation-surface test fixes those pairs in one reviewable table.
 
 Types are handwritten from the contract. There is no generated code. A contract

@@ -234,6 +234,18 @@ func (service *ClaimService) Retrieve(ctx context.Context, claimID string) (*Cla
 	return doJSON[Claim](ctx, service.client, http.MethodGet, "/claims/"+url.PathEscape(claimID), nil, requestOptions{retryable: true})
 }
 
+// Valuation reproduces a Claim valuation from the facts known at an inclusive cutoff.
+func (service *ClaimService) Valuation(ctx context.Context, claimID string, options ClaimValuationOptions) (*ClaimValuation, error) {
+	if err := validateID("Claim ID", claimID); err != nil {
+		return nil, err
+	}
+	query, err := validateValuationAt(options.ValuationAt)
+	if err != nil {
+		return nil, err
+	}
+	return doJSON[ClaimValuation](ctx, service.client, http.MethodGet, "/claims/"+url.PathEscape(claimID)+"/valuation"+query, nil, requestOptions{retryable: true})
+}
+
 // RequestInformation records a payer request for Claim evidence.
 func (service *ClaimService) RequestInformation(ctx context.Context, claimID string, input ClaimInformationRequestInput, options WriteOptions) (*Claim, error) {
 	if err := validateID("Claim ID", claimID); err != nil {

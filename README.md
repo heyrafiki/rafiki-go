@@ -11,7 +11,7 @@ accountable people and organizations.
 
 The client covers every operation published in the version 1 OpenAPI contract:
 Practitioners, Bookings, Sessions, eligibility, Coverage, pre-authorization,
-Claims, remittance and Webhooks.
+Claims, Claim valuation, remittance and Webhooks.
 
 ## First request
 
@@ -72,6 +72,33 @@ failures, `408`, `429`, `500`, `502`, `503` and `504` responses. Webhook
 registration and test delivery are not retried because the contract does not
 accept an idempotency key for those operations.
 
+## Claim valuation
+
+`Claims.Valuation` reproduces what a Claim was worth at a point in time. The
+cutoff is explicit, and Heyrafiki includes only the facts whose business time and
+knowledge time both fall on or before it, so the same cutoff returns the same
+answer however much later you ask.
+
+```go
+valuation, err := client.Claims.Valuation(ctx, "clm_demo_001", heyrafiki.ClaimValuationOptions{
+	ValuationAt: "2026-08-12T09:00:00Z",
+})
+if err != nil {
+	log.Fatal(err)
+}
+
+for _, event := range valuation.Events {
+	log.Printf("%d %s effective %s recorded %s",
+		event.Sequence, event.Type, event.EffectiveAt, event.RecordedAt)
+}
+```
+
+`EffectiveAt` is when the underlying fact took effect. `RecordedAt` is when
+Heyrafiki persisted it. `Amount.Outstanding` is payer liability less the
+settlement an authorized observation confirmed, and it is `nil` when the contract
+reports it as unknown. `ValuationAt` must be an RFC 3339 timestamp; the SDK
+rejects anything else rather than sending a cutoff the API cannot reproduce.
+
 ## Errors
 
 ```go
@@ -99,7 +126,7 @@ use a new major API version and a documented migration period.
 
 This client was reviewed against
 [`heyrafiki/contract`](https://github.com/heyrafiki/contract) contract `1.0.0`,
-commit `e629a129462d82534a5e3ed16035da863305d283`, on 2026-08-09. The client is
+commit `62c32d1b99ddded0cfe0baf8ddc57bcbaa764167`, on 2026-08-28. The client is
 handwritten; no generated source is included. See [`CONTRACT.md`](./CONTRACT.md).
 
 ## Develop

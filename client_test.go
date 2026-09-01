@@ -40,6 +40,59 @@ func testClient(t *testing.T, handler http.Handler) *Client {
 	return client
 }
 
+const valuationCutoff = "2026-08-12T09:00:00Z"
+
+const claimValuationFixture = `{
+	"id": "clm_demo_001:2026-08-12T09:00:00Z",
+	"object": "claim_valuation",
+	"claim_id": "clm_demo_001",
+	"valuation_at": "2026-08-12T09:00:00Z",
+	"currency": "KES",
+	"status": "partially_approved",
+	"amount": {
+		"billed": 350000,
+		"payer_liability": 280000,
+		"patient_responsibility": 70000,
+		"adjustment": 0,
+		"remitted": 280000,
+		"settled": 100000,
+		"outstanding": 180000
+	},
+	"policy": {"reference": "payer:policy:outpatient-mental-health", "version": "2026.07"},
+	"events": [
+		{
+			"sequence": 1,
+			"type": "submitted",
+			"effective_at": "2026-08-12T08:01:00Z",
+			"recorded_at": "2026-08-12T08:01:05Z",
+			"previous_status": "draft",
+			"next_status": "submitted",
+			"reason_code": null,
+			"evidence_references": []
+		},
+		{
+			"sequence": 2,
+			"type": "partially_approved",
+			"effective_at": "2026-08-12T08:40:00Z",
+			"recorded_at": "2026-08-12T08:41:00Z",
+			"previous_status": "submitted",
+			"next_status": "partially_approved",
+			"reason_code": "benefit_limit",
+			"evidence_references": ["evidence:adjudication:001"]
+		},
+		{
+			"sequence": 3,
+			"type": "remittance_recorded",
+			"effective_at": "2026-08-12T08:55:00Z",
+			"recorded_at": "2026-08-12T08:56:00Z",
+			"previous_status": "partially_approved",
+			"next_status": "partially_approved",
+			"reason_code": null,
+			"evidence_references": ["evidence:remittance:001"]
+		}
+	]
+}`
+
 func TestPublishedOperationSurface(t *testing.T) {
 	var mu sync.Mutex
 	var received []string
@@ -88,6 +141,10 @@ func TestPublishedOperationSurface(t *testing.T) {
 		func() error { _, err := client.Claims.Create(ctx, ClaimInput{}, write); return err },
 		func() error { _, err := client.Claims.Retrieve(ctx, "clm_1"); return err },
 		func() error {
+			_, err := client.Claims.Valuation(ctx, "clm_1", ClaimValuationOptions{ValuationAt: valuationCutoff})
+			return err
+		},
+		func() error {
 			_, err := client.Claims.RequestInformation(ctx, "clm_1", ClaimInformationRequestInput{}, write)
 			return err
 		},
@@ -134,6 +191,7 @@ func TestPublishedOperationSurface(t *testing.T) {
 		"GET /v1/claims",
 		"POST /v1/claims",
 		"GET /v1/claims/clm_1",
+		"GET /v1/claims/clm_1/valuation",
 		"POST /v1/claims/clm_1/information_requests",
 		"POST /v1/claims/clm_1/evidence",
 		"POST /v1/claims/clm_1/adjudications",
@@ -236,7 +294,7 @@ func TestNonIdempotentWriteIsNotRetried(t *testing.T) {
 func TestTransportRetryUsesConfiguredHTTPClient(t *testing.T) {
 	var attempts atomic.Int32
 	httpClient := &http.Client{Transport: roundTripFunc(func(request *http.Request) (*http.Response, error) {
-		if request.Header.Get("User-Agent") != "rafiki-go/0.1.0-beta.1 integration-tests/1.0" {
+		if request.Header.Get("User-Agent") != "rafiki-go/0.1.0-beta.2 integration-tests/1.0" {
 			t.Errorf("user agent = %q", request.Header.Get("User-Agent"))
 		}
 		if attempts.Add(1) == 1 {
@@ -411,5 +469,158 @@ func TestInvalidJSONResponseWrapsDecodeError(t *testing.T) {
 	var apiErr *APIError
 	if !errors.As(err, &apiErr) || apiErr.Code != "invalid_response" || apiErr.Unwrap() == nil {
 		t.Fatalf("error = %#v", err)
+	}
+}
+
+func TestClaimValuationSendsTheExplicitCutoff(t *testing.T) {
+	var query string
+	client := testClient(t, http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
+		query = request.URL.RawQuery
+		if got := request.URL.Query().Get("valuation_at"); got != valuationCutoff {
+			t.Errorf("valuation_at = %q, want %q", got, valuationCutoff)
+		}
+		_, _ = response.Write([]byte(claimValuationFixture))
+	}))
+
+	valuation, err := client.Claims.Valuation(
+		context.Background(),
+		"clm_demo_001",
+		ClaimValuationOptions{ValuationAt: valuationCutoff},
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if query != "valuation_at=2026-08-12T09%3A00%3A00Z" {
+		t.Fatalf("query = %q", query)
+	}
+	if valuation.Object != "claim_valuation" || valuation.ClaimID != "clm_demo_001" {
+		t.Fatalf("valuation = %#v", valuation)
+	}
+	if valuation.ValuationAt != valuationCutoff || valuation.Status != "partially_approved" || valuation.Currency != "KES" {
+		t.Fatalf("valuation = %#v", valuation)
+	}
+}
+
+func TestClaimValuationDecodesAmountsAndKnowledgeTimes(t *testing.T) {
+	client := testClient(t, http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
+		_, _ = response.Write([]byte(claimValuationFixture))
+	}))
+
+	valuation, err := client.Claims.Valuation(
+		context.Background(),
+		"clm_demo_001",
+		ClaimValuationOptions{ValuationAt: valuationCutoff},
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if valuation.Amount.Billed != 350000 || valuation.Amount.Remitted != 280000 || valuation.Amount.Settled != 100000 {
+		t.Fatalf("amount = %#v", valuation.Amount)
+	}
+	for label, value := range map[string]*int64{
+		"payer_liability":        valuation.Amount.PayerLiability,
+		"patient_responsibility": valuation.Amount.PatientResponsibility,
+		"adjustment":             valuation.Amount.Adjustment,
+		"outstanding":            valuation.Amount.Outstanding,
+	} {
+		if value == nil {
+			t.Fatalf("%s was decoded as unknown", label)
+		}
+	}
+	if *valuation.Amount.Outstanding != 180000 {
+		t.Fatalf("outstanding = %d", *valuation.Amount.Outstanding)
+	}
+	if valuation.Policy == nil || valuation.Policy.Version != "2026.07" {
+		t.Fatalf("policy = %#v", valuation.Policy)
+	}
+
+	if len(valuation.Events) != 3 {
+		t.Fatalf("events = %d, want 3", len(valuation.Events))
+	}
+	cutoff, err := time.Parse(time.RFC3339, valuationCutoff)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, event := range valuation.Events {
+		effectiveAt, parseErr := time.Parse(time.RFC3339, event.EffectiveAt)
+		if parseErr != nil {
+			t.Fatal(parseErr)
+		}
+		recordedAt, parseErr := time.Parse(time.RFC3339, event.RecordedAt)
+		if parseErr != nil {
+			t.Fatal(parseErr)
+		}
+		if effectiveAt.After(cutoff) || recordedAt.After(cutoff) {
+			t.Fatalf("event %d falls after the cutoff", event.Sequence)
+		}
+	}
+	if valuation.Events[0].ReasonCode != nil {
+		t.Fatalf("reason code = %v, want nil", *valuation.Events[0].ReasonCode)
+	}
+	if valuation.Events[1].ReasonCode == nil || *valuation.Events[1].ReasonCode != "benefit_limit" {
+		t.Fatalf("reason code = %#v", valuation.Events[1].ReasonCode)
+	}
+	if len(valuation.Events[2].EvidenceReferences) != 1 {
+		t.Fatalf("evidence references = %#v", valuation.Events[2].EvidenceReferences)
+	}
+}
+
+func TestClaimValuationReadIsRetried(t *testing.T) {
+	var attempts atomic.Int32
+	server := httptest.NewServer(http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
+		if attempts.Add(1) == 1 {
+			response.WriteHeader(http.StatusServiceUnavailable)
+			_, _ = response.Write([]byte(`{"error":{"code":"service_unavailable","message":"Retry shortly.","docs":"https://docs.heyrafiki.space/errors"}}`))
+			return
+		}
+		if got := request.URL.Query().Get("valuation_at"); got != valuationCutoff {
+			t.Errorf("retry changed the cutoff to %q", got)
+		}
+		_, _ = response.Write([]byte(claimValuationFixture))
+	}))
+	defer server.Close()
+	client, err := NewClient("test_api_key", WithBaseURL(server.URL), WithRetryPolicy(RetryPolicy{MaxAttempts: 2}))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := client.Claims.Valuation(
+		context.Background(),
+		"clm_demo_001",
+		ClaimValuationOptions{ValuationAt: valuationCutoff},
+	); err != nil {
+		t.Fatal(err)
+	}
+	if attempts.Load() != 2 {
+		t.Fatalf("attempts = %d, want 2", attempts.Load())
+	}
+}
+
+func TestClaimValuationRequiresAContractCutoff(t *testing.T) {
+	client, err := NewClient("key")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, test := range []struct {
+		name    string
+		claimID string
+		cutoff  string
+	}{
+		{name: "missing claim", claimID: " ", cutoff: valuationCutoff},
+		{name: "missing cutoff", claimID: "clm_1", cutoff: ""},
+		{name: "date only", claimID: "clm_1", cutoff: "2026-08-12"},
+		{name: "no offset", claimID: "clm_1", cutoff: "2026-08-12T09:00:00"},
+		{name: "not a timestamp", claimID: "clm_1", cutoff: "yesterday"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			if _, err := client.Claims.Valuation(
+				context.Background(),
+				test.claimID,
+				ClaimValuationOptions{ValuationAt: test.cutoff},
+			); err == nil {
+				t.Fatal("expected validation error")
+			}
+		})
 	}
 }
